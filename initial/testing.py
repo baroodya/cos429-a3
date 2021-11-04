@@ -103,11 +103,24 @@ def test_calc_gradient(model, batch, activations, dv_output):
     ref_grads = calc_gradient_(model, batch, activations, dv_output)
     my_grads = calc_gradient(model, batch, activations, dv_output)
 
-    if my_grads != ref_grads:
-        print("My output:\n", my_grads)
-        print("Reference output:\n", ref_grads)
-        return ref_grads
+    correct = True
+    for i in range(len(my_grads)):
+        if (my_grads[i]["W"] != ref_grads[i]["W"]).any() and (
+            my_grads[i]["b"] != ref_grads[i]["b"]
+        ).any():
+            print(
+                "My output:\n", my_grads[i]["W"], "\n", my_grads[i]["b"]
+            )
+            print(
+                "Reference output:\n",
+                ref_grads[i]["W"],
+                "\n",
+                ref_grads[i]["b"],
+            )
+            correct = False
 
+    if not correct:
+        return ref_grads
     else:
         print("fn_conv backward pass is correct!")
         return my_grads
@@ -127,7 +140,7 @@ def test_update_weights(model, ref_model, grads, hyper_params):
                 my_updated_model["layers"][i]["params"]["W"]
                 - ref_updated_model["layers"][i]["params"]["W"]
             )
-            > 0.00001
+            > 0.0001
         ).any():
             print(
                 "Model differences at layer:",

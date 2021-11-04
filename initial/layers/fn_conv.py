@@ -58,25 +58,30 @@ def fn_conv(input, params, hyper_params, backprop, dv_output=None):
         # TODO: BACKPROP CODE
         #       Update dv_input and grad with values
         for i in range(batch_size):
+            flipped_im = np.flip(input[:, :, :, i], axis=(0, 1))
             for j in range(num_filters):
-                flipped_im = np.flip(input[:, :, :, i], axis=(0, 1))
-                # print(flipped_im.shape)
-                # print(dv_output[:, :, :, i].shape)
+                grad_output = np.reshape(
+                    dv_output[:, :, j, i], (out_height, out_width, 1)
+                )
                 grad["W"][:, :, :, j] += scipy.signal.convolve(
-                    flipped_im, dv_output[:, :, :, i], mode="valid"
+                    flipped_im, grad_output, mode="valid"
                 )
 
-                # print(grad["W"][:, :, :, j].shape)
-
-                dv_input[:, :, :, i] += scipy.signal.convolve(
-                    flipped_im, grad["W"][:, :, :, j], mode="same"
-                )
-            ones = np.ones((out_height, out_width, num_filters))
+            ones = np.ones((1, out_height, num_filters))
 
             mult = dv_output[:, :, :, i].T @ ones.T
 
-            grad["b"] += np.sum(mult, axis=(1, 2)).reshape((3, 1))
+            grad["b"] += np.sum(mult, axis=(1, 2)).reshape(
+                (num_filters, 1)
+            )
+
+        dv_input = scipy.signal.convolve(
+            np.flip(input, axis=(0, 1)),
+            grad["W"],
+            mode="same",
+        )
 
         grad["W"] /= batch_size
+        grad["b"] /= batch_size
 
     return output, dv_input, grad

@@ -50,7 +50,7 @@ def check_layers():
     dv = np.random.rand(out_height, out_width, 7, 10)
 
     out, dv_in, grad = fn_conv(inp, params, hyper, True, dv)
-    print("Mine:\n", out[:, 0, 0, 0])
+    print("Mine:\n", grad["b"])
     out_fl, dv_in_fl, grad_fl = fn_conv(inp, params_fl, hyper, True, dv)
 
     for i in range(7):
@@ -60,11 +60,14 @@ def check_layers():
             )
 
     out_, dv_in_, grad_ = fn_conv_(inp, params, hyper, True, dv)
-    print("Thiers:\n", out_[:, 0, 0, 0])
+    print("Thiers:\n", grad_["b"])
     # compare normal
     err_out = mse(out, out_)
     # compare flipped
     err_out_fl = mse(out_fl, out_)
+
+    print("Output error:", err_out)
+    print("Flipped Output error:", err_out_fl)
 
     noflip = err_out < err_out_fl
     print("Convolutional layer")
@@ -120,6 +123,8 @@ def check_layers():
         err_dv = mse(dv_in, dv_in_)
         # compare flipped
         err_dv_fl = mse(dv_in_fl, dv_in_)
+        print("Mine:", dv_in[:, 0, 0, 0])
+        print("Theirs:", dv_in_[:, 0, 0, 0])
         print(
             "\tBackpropagated error: %s"
             % pass_fail((err_dv if noflip else err_dv_fl) < err_thresh)

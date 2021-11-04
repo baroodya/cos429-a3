@@ -24,31 +24,46 @@ from testing import test_implementations
 
 
 def _init_model():
+    # l = [
+    #     init_layers(
+    #         "conv",
+    #         {"filter_size": 3, "filter_depth": 3, "num_filters": 3},
+    #     ),
+    #     init_layers("relu", {}),
+    #     init_layers(
+    #         "conv",
+    #         {"filter_size": 3, "filter_depth": 3, "num_filters": 3},
+    #     ),
+    #     init_layers("relu", {}),
+    #     init_layers("pool", {"filter_size": 2, "stride": 2}),
+    #     init_layers(
+    #         "conv",
+    #         {"filter_size": 3, "filter_depth": 3, "num_filters": 3},
+    #     ),
+    #     init_layers("relu", {}),
+    #     init_layers(
+    #         "conv",
+    #         {"filter_size": 3, "filter_depth": 3, "num_filters": 3},
+    #     ),
+    #     init_layers("relu", {}),
+    #     init_layers("pool", {"filter_size": 2, "stride": 2}),
+    #     init_layers("flatten", {}),
+    #     init_layers("linear", {"num_in": 75, "num_out": 10}),
+    #     init_layers("softmax", {}),
+    # ]
     l = [
         init_layers(
             "conv",
-            {"filter_size": 3, "filter_depth": 3, "num_filters": 3},
+            {"filter_size": 2, "filter_depth": 3, "num_filters": 3},
         ),
-        init_layers("relu", {}),
         init_layers(
             "conv",
-            {"filter_size": 3, "filter_depth": 3, "num_filters": 3},
+            {"filter_size": 2, "filter_depth": 3, "num_filters": 3},
         ),
-        init_layers("relu", {}),
         init_layers("pool", {"filter_size": 2, "stride": 2}),
-        init_layers(
-            "conv",
-            {"filter_size": 3, "filter_depth": 3, "num_filters": 3},
-        ),
         init_layers("relu", {}),
-        init_layers(
-            "conv",
-            {"filter_size": 3, "filter_depth": 3, "num_filters": 3},
-        ),
-        init_layers("relu", {}),
-        init_layers("pool", {"filter_size": 2, "stride": 2}),
         init_layers("flatten", {}),
-        init_layers("linear", {"num_in": 75, "num_out": 10}),
+        init_layers("linear", {"num_in": 675, "num_out": 10}),
         init_layers("softmax", {}),
     ]
 
@@ -63,11 +78,15 @@ def main():
     model = _init_model()
     ref_model = copy.deepcopy(model)
 
-    numIters = 500
+    numIters = 10000
 
-    learning_rate = 0.01
-    weight_decay = 0.0005
-    batch_size = 256
+    learning_rate = 1e-5
+    weight_decay = 5e-7
+    batch_size = 128
+
+    rho = 0.99
+
+    velocity = []
 
     epsilon = 0
 
@@ -81,9 +100,11 @@ def main():
         "X_test": X_test,
         "y_test": y_test,
         "epsilon": epsilon,
+        "rho": rho,
+        "velocity": velocity,
     }
 
-    test_implementations(model, ref_model, X_train, y_train, params)
+    # test_implementations(model, ref_model, X_train, y_train, params)
 
     (
         finished_model,
@@ -92,11 +113,14 @@ def main():
         testing_accuracies,
     ) = train(model, X_train, y_train, params, numIters)
 
-    print(loss)
-
     plt.plot(training_accuracies)
     plt.xlabel("Iterations")
     plt.ylabel("Testing Accuracy")
+    plt.show()
+
+    plt.plot(loss)
+    plt.xlabel("Iterations")
+    plt.ylabel("Loss")
     plt.show()
 
     final_test_accuracy = testing_accuracies[-1]
