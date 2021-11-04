@@ -75,7 +75,7 @@ def test_fn_conv_forward(model, ref_model, batch):
 
 
 def test_fn_conv_backward(model, ref_model, batch, dv_output):
-    _, _, my_grads = fn_conv(
+    _, my_dv_input, my_grads = fn_conv(
         batch,
         model["layers"][0]["params"],
         model["layers"][0]["hyper_params"],
@@ -83,7 +83,7 @@ def test_fn_conv_backward(model, ref_model, batch, dv_output):
         dv_output=dv_output,
     )
 
-    _, _, ref_grads = fn_conv(
+    _, ref_dv_input, ref_grads = fn_conv(
         batch,
         ref_model["layers"][0]["params"],
         ref_model["layers"][0]["hyper_params"],
@@ -91,9 +91,9 @@ def test_fn_conv_backward(model, ref_model, batch, dv_output):
         dv_output=dv_output,
     )
 
-    if my_grads != ref_grads:
-        print("My Gradients:\n", my_grads)
-        print("Reference Gradients:\n", ref_grads)
+    if ref_dv_input != my_dv_input:
+        print("My Gradients:\n", my_dv_input)
+        print("Reference Gradients:\n", ref_dv_input)
         return ref_grads
     return my_grads
 
@@ -108,6 +108,7 @@ def test_calc_gradient(model, batch, activations, dv_output):
         if (my_grads[i]["W"] != ref_grads[i]["W"]).any() and (
             my_grads[i]["b"] != ref_grads[i]["b"]
         ).any():
+            print("Layer", i)
             print(
                 "My output:\n", my_grads[i]["W"], "\n", my_grads[i]["b"]
             )

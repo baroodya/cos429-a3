@@ -77,6 +77,7 @@ def main():
     X_train, y_train, X_test, y_test = get_CIFAR10_data()
 
     model = _init_model()
+    ref_model = copy.deepcopy(model)
 
     numIters = 10000
 
@@ -100,6 +101,8 @@ def main():
         "rho": rho,
         "velocity": velocity,
     }
+
+    # test_implementations(model, ref_model, X_train, y_train, params)
 
     (
         duration,

@@ -29,7 +29,7 @@ def update_weights(model, grads, hyper_params):
         vel[i]["b"] = rho * vel[i]["b"] + grads[i]["b"]
 
         updated_model["layers"][i]["params"]["W"] = curr["W"] - (
-            vel[i]["W"] * (a + lmd)
+            vel[i]["W"] * a - curr["W"] * lmd
         )
         updated_model["layers"][i]["params"]["b"] = curr["b"] - (
             vel[i]["b"] * a

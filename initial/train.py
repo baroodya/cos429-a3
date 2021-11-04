@@ -8,7 +8,7 @@ from layers.loss_crossentropy import loss_crossentropy
 ######################################################
 # Set use_pcode to True to use the provided pyc code
 # for inference, calc_gradient, loss_crossentropy and update_weights
-use_pcode = True
+use_pcode = False
 
 # You can modify the imports of this section to indicate
 # whether to use the provided pyc or your own code for each of the four functions.
@@ -91,7 +91,7 @@ def train(model, input, label, params, numIters):
     num_training_inputs = input.shape[-1]
     num_test_inputs = X_test.shape[-1]
     training_loss = np.zeros((numIters,))
-    testing_loss = np.zeros((int(numIters / 100),))
+    testing_loss = np.zeros((int(numIters / 50),))
 
     for i in range(numIters):
         #   (1) Select a subset of the input to use as a batch
@@ -126,7 +126,7 @@ def train(model, input, label, params, numIters):
             #   (2) Run inference on the batch
             output, activations = inference(model, batch)
             #   (3) Calculate loss and determine accuracy
-            testing_loss[i], _ = loss_crossentropy(
+            testing_loss[int(i / 50)], _ = loss_crossentropy(
                 output, y_test[start:end], {}, backprop=False
             )
             testing_accuracies.append(
@@ -150,8 +150,8 @@ def train(model, input, label, params, numIters):
                 update_params["velocity"].append(shapes)
 
         #   (5) Update the weights of the model
-        model = update_weights(model, grads, update_params)
-        # update_params["velocity"] = vel
+        model, vel = update_weights(model, grads, update_params)
+        update_params["velocity"] = vel
 
         # Optionally,
         #   (1) Monitor the progress of training
