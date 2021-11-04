@@ -94,7 +94,8 @@ def train(model, input, label, params, numIters):
 
     num_training_inputs = input.shape[-1]
     num_test_inputs = X_test.shape[-1]
-    loss = np.zeros((numIters,))
+    training_loss = np.zeros((numIters,))
+    testing_loss = np.zeros(((numIters / 100),))
 
     for i in range(numIters):
         #   (1) Select a subset of the input to use as a batch
@@ -108,7 +109,7 @@ def train(model, input, label, params, numIters):
         output, activations = inference(model, batch)
 
         #   (3) Calculate loss and determine accuracy
-        loss[i], dv_output = loss_crossentropy(
+        training_loss[i], dv_output = loss_crossentropy(
             output, label[start:end], {}, backprop=True
         )
         training_accuracies.append(
@@ -116,7 +117,7 @@ def train(model, input, label, params, numIters):
         )
 
         # break if loss has plateaued
-        if abs(loss[i] - loss[i - 1]) < epsilon:
+        if np.isnan(training_loss[i]):
             break
 
         # Check the testing/validation data every 50 iterations
@@ -129,6 +130,9 @@ def train(model, input, label, params, numIters):
             #   (2) Run inference on the batch
             output, activations = inference(model, batch)
             #   (3) Calculate loss and determine accuracy
+            testing_loss[i], _ = loss_crossentropy(
+                output, y_test[start:end], {}, backprop=False
+            )
             testing_accuracies.append(
                 get_accuracy(output, y_test[start:end], batch_size)
             )
@@ -162,7 +166,7 @@ def train(model, input, label, params, numIters):
                 percent_finished,
                 "% done. ",
                 "Loss = ",
-                np.round(loss[i], 3),
+                np.round(training_loss[i], 3),
                 ". Training Accuracy = ",
                 np.round(training_accuracies[-1], 3),
                 ". Testing Accuracy = ",
@@ -176,12 +180,6 @@ def train(model, input, label, params, numIters):
 
     print("Training model... 100% done.")
 
-    print("Calculation final training accuracy...", end="\r")
-    output, _ = inference(model, input)
-    training_accuracies.append(
-        get_accuracy(output, label, num_training_inputs)
-    )
-
     print("Calculation final testing accuracy...", end="\r")
     output, _ = inference(model, X_test)
     testing_accuracies.append(
@@ -190,19 +188,10 @@ def train(model, input, label, params, numIters):
 
     duration = datetime.now() - start_time
 
-    print(
-        "Final Training Accuracy = ",
-        training_accuracies[-1],
-        "               \n",
-        "Final Testing Accuracy = ",
-        testing_accuracies[-1],
-        "\n",
-        "Time per iteration: ",
-        duration / numIters,
-        "\n",
-        "Total time: ",
+    return (
         duration,
-        sep="",
+        training_loss,
+        testing_loss,
+        training_accuracies,
+        testing_accuracies,
     )
-
-    return model, loss, training_accuracies, testing_accuracies

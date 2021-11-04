@@ -56,6 +56,7 @@ def _init_model():
             "conv",
             {"filter_size": 2, "filter_depth": 3, "num_filters": 3},
         ),
+        init_layers("relu", {}),
         init_layers(
             "conv",
             {"filter_size": 2, "filter_depth": 3, "num_filters": 3},
@@ -76,19 +77,16 @@ def main():
     X_train, y_train, X_test, y_test = get_CIFAR10_data()
 
     model = _init_model()
-    ref_model = copy.deepcopy(model)
 
     numIters = 10000
 
     learning_rate = 1e-5
-    weight_decay = 5e-7
+    weight_decay = 0.005
     batch_size = 128
 
     rho = 0.99
 
     velocity = []
-
-    epsilon = 0
 
     save_file = "experiment1.npz"
 
@@ -99,31 +97,44 @@ def main():
         "save_file": save_file,
         "X_test": X_test,
         "y_test": y_test,
-        "epsilon": epsilon,
         "rho": rho,
         "velocity": velocity,
     }
 
-    # test_implementations(model, ref_model, X_train, y_train, params)
-
     (
-        finished_model,
-        loss,
+        duration,
+        training_loss,
+        testing_loss,
         training_accuracies,
         testing_accuracies,
     ) = train(model, X_train, y_train, params, numIters)
 
-    plt.plot(training_accuracies)
-    plt.xlabel("Iterations")
-    plt.ylabel("Testing Accuracy")
-    plt.show()
+    print(
+        "Final Testing Accuracy = ",
+        testing_accuracies[-1],
+        "\n",
+        "Time per iteration: ",
+        duration / numIters,
+        "\n",
+        "Total time: ",
+        duration,
+        sep="",
+    )
 
-    plt.plot(loss)
-    plt.xlabel("Iterations")
-    plt.ylabel("Loss")
-    plt.show()
+    # training_loss = range(1000)
+    # testing_loss = range(1000)
 
-    final_test_accuracy = testing_accuracies[-1]
+    plt.title("Model ")
+    plt.subplot(1, 2, 1)
+    plt.plot(training_loss)
+    plt.xlabel("Iterations")
+    plt.ylabel("Training Loss")
+
+    plt.subplot(1, 2, 2)
+    plt.plot(testing_loss)
+    plt.xlabel("Iterations")
+    plt.ylabel("Testing Loss")
+    plt.show()
 
 
 if __name__ == "__main__":
