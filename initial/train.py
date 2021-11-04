@@ -17,14 +17,12 @@ if use_pcode:
     sys.path += ["pyc_code"]
     from pyc_code.inference_ import inference
     from pyc_code.calc_gradient_ import calc_gradient
-
-    # from pyc_code.update_weights_ import update_weights
+    from pyc_code.update_weights_ import update_weights
 else:
     # import your own implementation
     from inference import inference
     from calc_gradient import calc_gradient
     from update_weights import update_weights
-from update_weights import update_weights
 
 ######################################################
 
@@ -87,15 +85,13 @@ def train(model, input, label, params, numIters):
     X_test = params["X_test"]
     y_test = params["y_test"]
 
-    epsilon = params["epsilon"]
-
     training_accuracies = []
     testing_accuracies = []
 
     num_training_inputs = input.shape[-1]
     num_test_inputs = X_test.shape[-1]
     training_loss = np.zeros((numIters,))
-    testing_loss = np.zeros(((numIters / 100),))
+    testing_loss = np.zeros((int(numIters / 100),))
 
     for i in range(numIters):
         #   (1) Select a subset of the input to use as a batch
@@ -147,7 +143,6 @@ def train(model, input, label, params, numIters):
 
         if i == 0:
             for j in range(len(grads)):
-                print(grads[j]["W"].shape)
                 shapes = {
                     "W": np.zeros(grads[j]["W"].shape),
                     "b": np.zeros(grads[j]["b"].shape),
@@ -155,8 +150,8 @@ def train(model, input, label, params, numIters):
                 update_params["velocity"].append(shapes)
 
         #   (5) Update the weights of the model
-        model, vel = update_weights(model, grads, update_params)
-        update_params["velocity"] = vel
+        model = update_weights(model, grads, update_params)
+        # update_params["velocity"] = vel
 
         # Optionally,
         #   (1) Monitor the progress of training

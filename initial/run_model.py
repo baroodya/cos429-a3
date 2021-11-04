@@ -124,7 +124,7 @@ def main():
     # training_loss = range(1000)
     # testing_loss = range(1000)
 
-    plt.title("Model ")
+    plt.title("Model 2")
     plt.subplot(1, 2, 1)
     plt.plot(training_loss)
     plt.xlabel("Iterations")
